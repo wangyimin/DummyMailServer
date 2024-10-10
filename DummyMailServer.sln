@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35303.130
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DummyMailServer", "DummyMailServer.csproj", "{A4B134D6-936B-4AFF-BBA3-52E2F2FF8168}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A4B134D6-936B-4AFF-BBA3-52E2F2FF8168}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A4B134D6-936B-4AFF-BBA3-52E2F2FF8168}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A4B134D6-936B-4AFF-BBA3-52E2F2FF8168}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A4B134D6-936B-4AFF-BBA3-52E2F2FF8168}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6B99B7A9-326A-45C7-A063-FBD890FB6178}
+	EndGlobalSection
+EndGlobal
