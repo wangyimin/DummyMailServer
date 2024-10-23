@@ -17,6 +17,7 @@ namespace DummyMailServer
         {
             this.client = client;
             var stream = client.GetStream();
+            //client.Client.Blocking = false;
             req = new Request() { stream = stream };
             resp = new Response() { stream = stream };
             req.ReadCompleted += OnReadCompleted;
@@ -29,7 +30,14 @@ namespace DummyMailServer
                 await resp.WriteAsync("220 Hello from server\r\n");
                 while (!cts.IsCancellationRequested)
                 {
+#if FROMASYNC || NORMAL
                     await req.ReadAsync(cts.Token);
+#endif
+#if BEGINREAD
+                    if (client.Client.Available > 0)
+                        req.Read(cts.Token);
+#endif
+                    Thread.Sleep(100);
                 }
             }
             finally { cts?.Dispose(); req?.Dispose(); resp?.Dispose(); client?.Dispose(); }
@@ -42,6 +50,7 @@ namespace DummyMailServer
             Console.Write(data);
 #endif
             (bool rst, string cmd, string msg) = commands.TryExecute(data);
+
             if (rst)                     await resp.WriteAsync(msg);
             if (data.Equals("QUIT\r\n")) cts.Cancel();
         }

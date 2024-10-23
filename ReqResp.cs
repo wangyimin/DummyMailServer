@@ -16,30 +16,69 @@ namespace DummyMailServer
     {
         public NetworkStream stream;
         protected IBuffer buff = new CBuffer();
-
-        public async Task<string> ReadAsync(CancellationToken ct) => await InternalReadAsync(ct);
-
-        private async Task<string> InternalReadAsync(CancellationToken ct)
+#if FROMASYNC
+        private readonly SemaphoreSlim receiver= new SemaphoreSlim(1, 1);
+#endif
+#if BEGINREAD
+        public void Read(CancellationToken ct)
         {
-            int len = 0;
-            var chars = new byte[1024];
-            var sb = new StringBuilder();
+            if (ct.IsCancellationRequested) return;
 
-            while (stream.DataAvailable && (len = await stream.ReadAsync(chars, 0, chars.Length, ct)) != 0)
+            var chars = new byte[1024];
+            stream.BeginRead(chars, 0, chars.Length, 
+                (ar)=>
+                {
+                    int len = stream.EndRead(ar);
+                    Processing(chars, len);
+                }, null);
+        }
+#endif
+#if FROMASYNC
+        public async Task ReadAsync(CancellationToken ct)
+        {
+            if (ct.IsCancellationRequested) return;
+
+            await receiver.WaitAsync();
+
+            var chars = new byte[1024];
+            int len = await Task.Factory.FromAsync(stream.BeginRead, stream.EndRead, chars, 0, chars.Length, null);
+            Processing(chars, len);
+
+            receiver.Release();
+        }
+#endif
+#if NORMAL
+        public async Task ReadAsync(CancellationToken ct) => await InternalReadAsync(ct);
+
+        private async Task InternalReadAsync(CancellationToken ct)
+        {
+            int len;
+            var chars = new byte[1024];
+
+            while (stream.DataAvailable && (len = await stream.ReadAsync(chars, 0, chars.Length, ct)) > 0)
             {
-                sb = Enumerable.Range(0, len).Aggregate(sb, (data, i) => {
-                    if (chars[i] != '\r' && chars[i] != '\n')
-                        buff.Append(chars, i, 1);
-                    else
-                    {
-                        if (buff.Length > 0) data.AppendLine(Encoding.ASCII.GetString(buff.Get()));
-                        buff.Reset();
-                    }
-                    return data;});
+                Processing(chars, len);
             }
+        }
+#endif
+        private void Processing(byte[] chars, int len)
+        {
+            if (len <= 0) return;
+
+            var sb = new StringBuilder();
+            sb = Enumerable.Range(0, len).Aggregate(sb, (data, i) =>
+            {
+                if (chars[i] != '\r' && chars[i] != '\n')
+                    buff.Append(chars, i, 1);
+                else
+                {
+                    if (buff.Length > 0) data.AppendLine(Encoding.ASCII.GetString(buff.Get()));
+                    buff.Reset();
+                }
+                return data;
+            });
             if (sb.Length > 0)
                 ReadCompleted?.Invoke(this, new ReadCompletedArgs() { command = sb.ToString() });
-            return sb.ToString();
         }
 
         public void Dispose() => stream?.Close();
