@@ -65,8 +65,7 @@ namespace DummyMailServer
         {
             if (len <= 0) return;
 
-            var sb = new StringBuilder();
-            sb = Enumerable.Range(0, len).Aggregate(sb, (data, i) =>
+            var sb = Enumerable.Range(0, len).Aggregate(new StringBuilder(), (data, i) =>
             {
                 if (chars[i] != '\r' && chars[i] != '\n')
                     buff.Append(chars, i, 1);

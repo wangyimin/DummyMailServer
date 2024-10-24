@@ -30,13 +30,15 @@ namespace DummyMailServer
                 await resp.WriteAsync("220 Hello from server\r\n");
                 while (!cts.IsCancellationRequested)
                 {
+                    if (client.Available > 0)
+                    {
 #if FROMASYNC || NORMAL
-                    await req.ReadAsync(cts.Token);
+                        await req.ReadAsync(cts.Token);
 #endif
 #if BEGINREAD
-                    if (client.Client.Available > 0)
                         req.Read(cts.Token);
 #endif
+                    }
                     Thread.Sleep(100);
                 }
             }
